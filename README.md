@@ -1,7 +1,7 @@
 
-# Simple Wallet
+# Smart Contract Project
 
-This Solidity program is a simple wallet contract that demonstrates the use of `require()`, `assert()`, and `revert()` statements. The purpose of this program is to illustrate error handling in Solidity while providing basic wallet functionalities such as depositing, withdrawing, and checking balances.
+This Solidity program is a smart contract that demonstrates the use of `require()`, `assert()`, and `revert()` statements. The purpose of this program is to illustrate error handling in Solidity while providing basic wallet functionalities such as depositing, withdrawing, and checking balances.
 
 ## Description
 
