@@ -1,39 +1,58 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-contract FunctionsErrors {
-    uint256 private result;
+contract SimpleWallet {
+    // Mapping to store the balance of each address
+    mapping(address => uint256) private balances;
 
-    // Event to log when the result is updated
-    event ResultUpdated(uint256 newResult);
+    // Event to log deposits
+    event Deposit(address indexed account, uint256 amount);
 
-    // Function to add a value to the result
-    function add(uint256 value) public {
-        require(value > 0, "Value must be positive");
-        result += value;
-        emit ResultUpdated(result);
+    // Event to log withdrawals
+    event Withdraw(address indexed account, uint256 amount);
+
+    // Function to deposit Ether into the wallet
+    function deposit() public payable {
+        require(msg.value > 0, "Deposit value must be greater than 0");
+        balances[msg.sender] += msg.value;
+        emit Deposit(msg.sender, msg.value);
     }
 
-    // Function to get the current result
-    function getResult() public view returns (uint256) {
-        assert(result >= 0); // Ensuring the result is non-negative (though this is generally unnecessary as uint256 is always non-negative)
-        return result;
+    // Function to withdraw Ether from the wallet
+    function withdraw(uint256 amount) public {
+        require(amount > 0, "Withdraw amount must be greater than 0");
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+
+        // Before making the transfer, ensure no overflow
+        uint256 initialBalance = address(this).balance;
+        
+        // Transfer the amount
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "Transfer failed");
+
+        balances[msg.sender] -= amount;
+        emit Withdraw(msg.sender, amount);
+
+        // Check the contract balance to ensure no unexpected changes
+        assert(address(this).balance == initialBalance - amount);
     }
 
-    // Function to reset the result to zero
-    function resetResult() public {
-        if (result == 0) {
-            revert("Result is already zero");
+    // Function to check the balance of the caller
+    function checkBalance() public view returns (uint256) {
+        return balances[msg.sender];
+    }
+
+    // Function to reset the balance of the caller to zero
+    function resetBalance() public {
+        if (balances[msg.sender] == 0) {
+            revert("Balance is already zero");
         }
-        result = 0;
-        emit ResultUpdated(result);
+        balances[msg.sender] = 0;
     }
 
-    // Function to subtract a value from the result
-    function subtract(uint256 value) public {
-        require(value > 0, "Value must be positive");
-        require(result >= value, "Result cannot be negative");
-        result -= value;
-        emit ResultUpdated(result);
+
+    // Function to get the balance of the contract (total deposits - total withdrawals)
+    function getContractBalance() public view returns (uint256) {
+        return address(this).balance;
     }
 }
